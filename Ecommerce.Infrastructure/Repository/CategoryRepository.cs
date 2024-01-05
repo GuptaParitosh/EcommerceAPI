@@ -1,5 +1,6 @@
 ﻿using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces.Repository;
+using Ecommerce.Domain.CustomException;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -21,18 +22,20 @@ namespace Ecommerce.Infrastructure.Repository
             _logger = logger;
         }
 
-        public async Task<Category> AddCategory(Category Category)
+        public async Task<Category> AddCategory(Category category)
         {
-            _context.Category.Add(Category);
+            _context.Category.Add(category);
             await _context.SaveChangesAsync();
-            return Category;
+            return category;
         }
 
-        public async Task DeleteCategory(Guid CategoryId)
+        public async Task DeleteCategory(Guid categoryId)
         {
-            var Category = _context.Category.FirstOrDefault(p => p.Id == CategoryId);
+            var Category = _context.Category.FirstOrDefault(p => p.Id == categoryId);
             if (Category == null)
-                return;
+            {
+                throw new CategoryNotFoundException(categoryId, string.Empty);
+            }
             _context.Category.Remove(Category);
             await _context.SaveChangesAsync();
         }
@@ -47,17 +50,21 @@ namespace Ecommerce.Infrastructure.Repository
             return categories;
         }
 
-        public async Task<Category> GetCategoryById(Guid CategoryId)
+        public async Task<Category> GetCategoryById(Guid categoryId)
         {
-            var category = await _context.Category.FirstOrDefaultAsync(p => p.Id == CategoryId);
+            var category = await _context.Category.FirstOrDefaultAsync(p => p.Id == categoryId);
             category.Products = await GetProductByCategoryId(category.Id);
             return category;
         }
 
-        public async Task<Category> UpdateCategory(Guid CategoryId, string CategoryName)
+        public async Task<Category> UpdateCategory(Guid categoryId, string categoryName)
         {
-            var category = await _context.Category.FirstOrDefaultAsync(p => p.Id == CategoryId);
-            category.CategoryName = CategoryName;
+            var category = await _context.Category.FirstOrDefaultAsync(p => p.Id == categoryId);
+            if(category == null)
+            {
+                throw new CategoryNotFoundException(categoryId, categoryName);
+            }
+            category.CategoryName = categoryName;
 
             _context.Category.Update(category);
             await _context.SaveChangesAsync();

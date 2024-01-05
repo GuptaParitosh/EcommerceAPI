@@ -1,4 +1,5 @@
-﻿using Ecommerce.Domain.Entities;
+﻿using Ecommerce.Domain.CustomException;
+using Ecommerce.Domain.Entities;
 using Ecommerce.Domain.Interfaces.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -29,11 +30,13 @@ namespace Ecommerce.Infrastructure.Repository
             return product;
         }
 
-        public async Task DeleteProduct(Guid ProductId)
+        public async Task DeleteProduct(Guid productId)
         {
-            var product = _context.Product.FirstOrDefault(p => p.Id == ProductId);
+            var product = _context.Product.FirstOrDefault(p => p.Id == productId);
             if (product == null)
-                return;
+            {
+                throw new ProductNotFoundException(productId, string.Empty);
+            }
             _context.Product.Remove(product);
             await _context.SaveChangesAsync();
         }
@@ -48,20 +51,30 @@ namespace Ecommerce.Infrastructure.Repository
             return products;
         }
 
-        public async Task<Product> GetProductById(Guid ProductId)
+        public async Task<Product> GetProductById(Guid productId)
         {
-            var product = await _context.Product.FirstOrDefaultAsync(p => p.Id == ProductId);
+            var product = await _context.Product.FirstOrDefaultAsync(p => p.Id == productId);
             product.Category = await GetCategoryById(product?.CategoryId);
             return product;
         }
 
-        public async Task<Product> UpdateProduct(Guid Id, string name, long Price, string ProductType, Guid? CategoryId)
+        public async Task<Product> UpdateProduct(Guid id, string name, long price, string productType, Guid? categoryId)
         {
-            var product = await _context.Product.FirstOrDefaultAsync(p => p.Id == Id);
+            var product = await _context.Product.FirstOrDefaultAsync(p => p.Id == id);
+            var category = await GetCategoryById(categoryId);
+            if (product == null)
+            {
+                throw new ProductNotFoundException(id, name);
+            }
+
+            if(categoryId != null && category == null)
+            {
+                throw new CategoryNotFoundException((Guid)categoryId, string.Empty);
+            }
             product.ProductName = name;
-            product.Price = Price;
-            product.ProductType = ProductType;
-            product.CategoryId = CategoryId;
+            product.Price = price;
+            product.ProductType = productType;
+            product.CategoryId = categoryId;
             
             _context.Product.Update(product);
             await _context.SaveChangesAsync();
@@ -70,13 +83,13 @@ namespace Ecommerce.Infrastructure.Repository
             return product;
         }
 
-        private async Task<Category> GetCategoryById(Guid? CategoryId)
+        private async Task<Category> GetCategoryById(Guid? categoryId)
         {
-            if (CategoryId == null)
+            if (categoryId == null)
             {
                 return null;
             }
-            return await _context.Category.FirstOrDefaultAsync(c => c.Id == CategoryId);
+            return await _context.Category.FirstOrDefaultAsync(c => c.Id == categoryId);
 
         }
     }

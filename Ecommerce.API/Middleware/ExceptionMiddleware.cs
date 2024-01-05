@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Resources;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Ecommerce.Domain.Middleware
@@ -42,19 +43,22 @@ namespace Ecommerce.Domain.Middleware
             context.Response.ContentType = "application/json";
             ErrorResponse response = new ErrorResponse();
 
-            if (exception is ProductNotFoundException)
+            switch (exception)
             {
-                context.Response.StatusCode = (int)HttpStatusCode.OK;
-                response.StatusCode = (int)HttpStatusCode.OK;
-                response.Message = exception.Message;
+                case ProductNotFoundException e:
+                    response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    response.Message = exception.Message;
+                    break;
+                case CategoryNotFoundException e:
+                    response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    response.Message = exception.Message;
+                    break;
+                default:
+                    response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    break;
             }
-            else
-            {
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                response.Message = "Failed to Process";
-            }
-            return context.Response.WriteAsync(response.ToString());
+            var result = JsonSerializer.Serialize(response);
+            return context.Response.WriteAsync(result);
         }
     }
 }

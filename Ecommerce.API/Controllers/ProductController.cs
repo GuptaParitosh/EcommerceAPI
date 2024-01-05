@@ -48,14 +48,14 @@ namespace Ecommerce.Domain.Controllers
             return Ok(products);
         }
 
-        [HttpPost("update")]
+        [HttpPut("update")]
         public async Task<IActionResult> Update([FromBody] Ecommerce.Domain.ViewModels.Request.Product product)
         {
-            var products = await _mediator.Send(new UpdateProductCommand { ProductName = product.ProductName, Price = product.Price, ProductType = product.ProductType, CategoryId = product.CategoryId });
+            var products = await _mediator.Send(new UpdateProductCommand { ProductId = product.Id, ProductName = product.ProductName, Price = product.Price, ProductType = product.ProductType, CategoryId = product.CategoryId });
             return Ok(products);
         }
 
-        [HttpPost("delete")]
+        [HttpDelete("delete")]
         public async Task<IActionResult> Delete([FromQuery] Guid productId)
         {
             await _mediator.Send(new DeleteProductCommand { ProductId = productId  });

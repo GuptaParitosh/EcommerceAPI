@@ -43,14 +43,14 @@ namespace Ecommerce.API.Controllers
             return Ok(categoryResponse);
         }
 
-        [HttpPost("update")]
+        [HttpPut("update")]
         public async Task<ActionResult> Update([FromBody] Ecommerce.API.ViewModels.Request.Category category)
         {
             var categoryResponse = await _mediator.Send(new UpdateCategoryCommand { CategoryId = category.CategoryId, CategoryName = category.Name });
             return Ok(categoryResponse);
         }
 
-        [HttpPost("delete")]
+        [HttpDelete("delete")]
         public async Task<ActionResult> Delete([FromQuery] Guid categoryId)
         {
             await _mediator.Send(new DeleteCategoryCommand { CategoryId = categoryId });

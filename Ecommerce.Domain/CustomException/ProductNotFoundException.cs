@@ -10,7 +10,7 @@ namespace Ecommerce.Domain.CustomException
     [Serializable]
     public class ProductNotFoundException : Exception
     {
-        public long ProductId { get; set; }
+        public Guid ProductId { get; set; }
         public string ProductName { get; set; }
 
         private const string DefaultMessage = "Product does not exist.";
@@ -29,7 +29,7 @@ namespace Ecommerce.Domain.CustomException
 
         }
 
-        public ProductNotFoundException(long productId, string productName) : this($"Product does not exist with ID: '{productId}' and Name: '{productName}'.")
+        public ProductNotFoundException(Guid productId, string productName) : this($"Product does not exist with ID: '{productId}' and Name: '{productName}'.")
         {
             ProductId = productId;
             ProductName = productName;
@@ -38,7 +38,7 @@ namespace Ecommerce.Domain.CustomException
         // This protected constructor is used for deserialization.
         protected ProductNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
         {
-            ProductId = (long)info.GetValue(nameof(ProductId), typeof(long));
+            ProductId = (Guid)info.GetValue(nameof(ProductId), typeof(Guid));
             ProductName = (string)info.GetValue(nameof(ProductName), typeof(string));
         }
 
@@ -48,7 +48,7 @@ namespace Ecommerce.Domain.CustomException
             // Change the case of two properties, and then use the
             // method of the base class.
             base.GetObjectData(info, context);
-            info.AddValue(nameof(ProductId), ProductId, typeof(long));
+            info.AddValue(nameof(ProductId), ProductId, typeof(Guid));
             info.AddValue(nameof(ProductName), ProductName, typeof(string));
         }
     }
